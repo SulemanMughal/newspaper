@@ -1,0 +1,27 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand fs-3 fw-bolder" href="{% url 'article_list' %}">Newspaper</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        
+      </ul>
+      <ul class="navbar-nav">
+          {% if request.user.is_authenticated %}
+          <li class="nav-item">
+            <a href="{% url 'article_new' %}" class="nav-link">+ New</a>
+            </li>
+              <li class="nav-item">
+                  <a class="nav-link" href="#!" >Logout</a>
+              </li>
+          {% else %}
+              <li class="nav-item">
+                  <a class="nav-link" href="#!">Login</a>
+              </li>
+          {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>

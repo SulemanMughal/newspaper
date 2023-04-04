@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html lang="en" >
+<head>
+    
+
+<title>
+    {% block title %}
+    {% endblock %}
+</title> 
+
+
+{% block meta_tags %}
+{% endblock %}
+
+{% block style %}
+{% include 'style.html' %}
+{% endblock %}
+
+{% block extra_css %}
+
+{% endblock %}
+
+
+</head>
+<body class="home blog">
+<div id="wrapper">
+
+    {% block header %}
+        {% include 'header.html' %}
+    {% endblock %}
+
+    {% block content %}
+    {% endblock %}
+
+</div>
+    {% block footer %}
+        {% include 'footer.html' %}
+    {% endblock %}
+
+
+{% block extra_js %}
+{% endblock %}
+
+</body>
+</html>
