@@ -1,6 +1,6 @@
 from .tokens import account_activation_token
-
-
+from django.contrib.auth.forms import UserChangeForm, PasswordChangeForm
+from django.urls import reverse
 from django.core.mail import (send_mail, EmailMessage)
 
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -177,3 +177,22 @@ def activate(request, uidb64, token):
     else:
         messages.warning(request, "Invalid Activation Link")
         return redirect("user-login")
+
+
+@login_required()
+def change_password(request):
+    template_name = "change_password.html"
+    if request.method != 'POST':
+        form = PasswordChangeForm(user=request.user)
+    else:
+        form = PasswordChangeForm(data=request.POST, user=request.user)
+        if form.is_valid():
+            form.save()
+            update_session_auth_hash(request, form.user)
+            messages.success(
+                request, "Password has been updated successfully.")
+            return redirect(reverse('article_list'))
+    context = {
+        'form': form
+    }
+    return render(request, template_name, context)

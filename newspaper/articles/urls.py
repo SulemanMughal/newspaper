@@ -1,5 +1,5 @@
 from django.urls import path, re_path
-from .views import ArticleListView, ArticleUpdateView, ArticleDetailView,  ArticleDeleteView, ArticleCreateView, UserLoginView, UserLogoutView, UserRegistrationView, activate
+from .views import ArticleListView, ArticleUpdateView, ArticleDetailView,  ArticleDeleteView, ArticleCreateView, UserLoginView, UserLogoutView, UserRegistrationView, activate, change_password
 
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
 
@@ -21,7 +21,6 @@ urlpatterns = [
     path('activate/<slug:uidb64>/<slug:token>/',
          activate, name='user-activate'),
 
-    # ? Password Reset URLS...........
     path('password_reset/', PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', PasswordResetDoneView.as_view(),
          name='password_reset_done'),
@@ -29,5 +28,8 @@ urlpatterns = [
          name='password_reset_confirm'),
     path('reset/done/', PasswordResetCompleteView.as_view(),
          name='password_reset_complete'),
+
+
+    path('change_password', change_password, name="change_password"),
 
 ]
