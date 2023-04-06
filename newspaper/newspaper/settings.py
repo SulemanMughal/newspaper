@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'articles',
     'taggit',
     'ckeditor',
+    'mathfilters',
     # 'django_social_share',
 ]
 

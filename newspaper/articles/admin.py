@@ -25,3 +25,4 @@ admin.site.register(Article, ArticleAdmin)  # new
 
 # admin.site.register(Article)
 admin.site.register(Comment)
+admin.site.register(LikeArticle)

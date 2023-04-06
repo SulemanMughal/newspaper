@@ -1,4 +1,4 @@
-{% extends 'base.html' %} {% load static prev_post next_post %} 
+{% extends 'base.html' %} {% load static prev_post next_post mathfilters %} 
 {% block title %}{{ article.title }}{% endblock %} {% block extra_css %}
 
 <style>
@@ -43,8 +43,52 @@
                             <div class="navigation-top">
                                 <div class="d-sm-flex justify-content-between text-center">
                                     <p class="like-info">
-                                        <span class="align-middle"><i class="fa fa-heart"></i></span>
-                                        Lily and 4 people like this
+                                        {% if request.user.is_authenticated %}
+                                            {% if is_like %}
+                                                <a href="#!" class="text-danger" id="dislike_btn" data-article-id="{{ article.id }}" data-url="{% url 'dislike_article' %}"><span class="align-middle"><i class="fa fa-heart"></i></span></a>
+                                            {% else %}
+                                                <a href="#!" class="text-primary" id="like_btn" data-article-id="{{ article.id }}" data-url="{% url 'like_article' %}"><span class="align-middle"><i class="fa fa-heart"></i></span></a>
+                                            {% endif %}
+                                        {% endif %}
+                                        {% if likes_counter > 0 %}
+                                            {% if likes_counter == 1 and is_like %}
+                                                
+                                                    <span class="you-info">You</span>
+                                                    <span class="and-info d-none"></span>
+                                                    <span class="favourite-counter d-none"></span> 
+                                                    <span class="people-info">like this</span>
+                                                
+                                            {% else %}
+                                                {% if likes_counter == 1 %}
+                                                    {% if is_like is None %}
+                                                
+                                                        <span class="you-info d-none"> You </span>
+                                                        <span class="and-info d-none"> and  </span>
+                                                        <span class="favourite-counter">{{ likes_counter }}</span> 
+                                                        <span class="people-info">people likes this</span>
+                                                
+                                                    {% endif %}
+                                                {% elif likes_counter >= 2  %}
+                                                    {% if is_like is None %}
+                                                    
+                                                        <span class="you-info d-none"> You </span>
+                                                        <span class="and-info d-none"> and  </span>
+                                                        <span class="favourite-counter">{{ likes_counter }}</span> 
+                                                        <span class="people-info">peoples like this</span>
+                                                    
+                                                    {% else %}
+                                                    
+                                                        <span class="you-info">You</span><span class="and-info">and</span><span class="favourite-counter">{{ likes_counter|sub:1 }}</span><span class="people-info">people like this</span>
+                                                    
+                                                    {% endif %}
+                                                {% endif %}
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="you-info d-none"></span>
+                                            <span class="and-info d-none"></span>
+                                            <span class="favourite-counter d-none"></span> 
+                                            <span class="people-info d-none"></span>
+                                        {% endif %}
                                     </p>
                                     <div class="col-sm-4 text-center my-2 my-sm-0">
                                         <!-- <p class="comment-count"><span class="align-middle"><i class="fa fa-comment"></i></span> 06 Comments</p> -->
@@ -346,6 +390,156 @@
         })(jQuery);
     });
 </script>
+
+<script>
+
+$(document).on("click", "a#like_btn", function(event){
+        event.preventDefault();
+            event.stopPropagation();
+            var fd = new FormData();
+            var target_url = $(this).attr("data-url");
+            var target_id = $(this).attr("data-article-id");
+            fd.append("article", target_id );
+            $.ajaxSetup({
+            beforeSend: function(xhr, settings){
+                xhr.setRequestHeader(
+                'X-CSRFToken', '{{ csrf_token }}'
+                )
+            }
+            });
+            $.ajax({
+            url : target_url,
+            type  : "POST",
+            data: fd,
+            processData: false,
+            contentType: false,
+            success : function(response){
+                var response_element = `
+                <a href="#!" class="text-danger" id="dislike_btn" data-article-id="${target_id}" data-url="{% url 'dislike_article' %}"><span class="align-middle"><i class="fa fa-heart"></i></span></a>
+                `
+                $("a#like_btn").replaceWith(response_element);
+                
+                let likes_counter = parseInt(response.favourite_counter);
+                let is_like = parseInt(response.is_like);
+
+                
+
+                if(likes_counter >= 0){
+                    if(likes_counter == 1 && is_like == 1 ){
+                        $("span.you-info").replaceWith(`<span class="you-info">You</span>`);
+                        $("span.and-info").replaceWith(`<span class="and-info d-none"></span>`);
+                        $("span.favourite-counter").replaceWith(`<span class="favourite-counter d-none"></span>`);
+                        $("span.people-info").replaceWith(`<span class="people-info">like this</span>`);
+                    }
+                    else{
+                        if(likes_counter == 1){
+                            if(is_like == 0){
+                                $("span.you-info").replaceWith(`<span class="you-info d-none"> You </span>`);
+                                $("span.and-info").replaceWith(`<span class="and-info d-none"> and  </span>`);
+                                $("span.favourite-counter").replaceWith(`<span class="favourite-counter">${likes_counter}</span>`);
+                                $("span.people-info").replaceWith(`<span class="people-info">people likes this</span>`);
+                            }
+                        }
+                        else if (likes_counter >= 2 ){
+                            if(is_like == 0){
+                                $("span.you-info").replaceWith(`<span class="you-info d-none"> You </span>`);
+                                $("span.and-info").replaceWith(`<span class="and-info d-none"> and  </span>`);
+                                $("span.favourite-counter").replaceWith(`<span class="favourite-counter">${likes_counter}</span> `);
+                                $("span.people-info").replaceWith(`<span class="people-info">peoples like this</span>`);
+                            }
+                            else{
+                                $("span.you-info").replaceWith(`<span class="you-info">You</span>`);
+                                $("span.and-info").replaceWith(`<span class="and-info">and</span>`);
+                                $("span.favourite-counter").replaceWith(`<span class="favourite-counter">${likes_counter-1}</span>`);
+                                $("span.people-info").replaceWith(`<span class="people-info">people like this</span>`);
+                            }
+                        }
+                    }
+                }
+                
+            },
+            error : function(response){
+                alert(response.responseJSON.error);
+            }
+            });
+    });
+    
+
+
+    $(document).on("click", "a#dislike_btn", function(event){
+        event.preventDefault();
+            event.stopPropagation();
+            console.debug("CLicked");
+            var fd = new FormData();
+            var target_url = $(this).attr("data-url");
+            var target_id = $(this).attr("data-article-id");
+            fd.append("article", target_id);
+            $.ajaxSetup({
+            beforeSend: function(xhr, settings){
+                xhr.setRequestHeader(
+                'X-CSRFToken', '{{ csrf_token }}'
+                )
+            }
+            });
+            $.ajax({
+            url : target_url,
+            type  : "POST",
+            data: fd,
+            processData: false,
+            contentType: false,
+            success : function(response){
+                var response_element = `
+                <a href="#!" class="text-primary" id="like_btn" data-article-id="${target_id}" data-url="{% url 'like_article' %}"><span class="align-middle"><i class="fa fa-heart"></i></span></a>
+                `
+                $("a#dislike_btn").replaceWith(response_element);
+
+                let likes_counter = parseInt(response.favourite_counter);
+                let is_like = parseInt(response.is_like);
+
+                
+
+                if(likes_counter >= 0){
+                    if(likes_counter == 1 && is_like == 1 ){
+                        $("span.you-info").replaceWith(`<span class="you-info">You</span>`);
+                        $("span.and-info").replaceWith(`<span class="and-info d-none"></span>`);
+                        $("span.favourite-counter").replaceWith(`<span class="favourite-counter d-none"></span>`);
+                        $("span.people-info").replaceWith(`<span class="people-info">like this</span>`);
+                    }
+                    else{
+                        if(likes_counter == 1){
+                            if(is_like == 0){
+                                $("span.you-info").replaceWith(`<span class="you-info d-none"> You </span>`);
+                                $("span.and-info").replaceWith(`<span class="and-info d-none"> and  </span>`);
+                                $("span.favourite-counter").replaceWith(`<span class="favourite-counter">${likes_counter}</span>`);
+                                $("span.people-info").replaceWith(`<span class="people-info">people likes this</span>`);
+                            }
+                        }
+                        else if (likes_counter >= 2 ){
+                            if(is_like == 0){
+                                $("span.you-info").replaceWith(`<span class="you-info d-none"> You </span>`);
+                                $("span.and-info").replaceWith(`<span class="and-info d-none"> and  </span>`);
+                                $("span.favourite-counter").replaceWith(`<span class="favourite-counter">${likes_counter}</span> `);
+                                $("span.people-info").replaceWith(`<span class="people-info">peoples like this</span>`);
+                            }
+                            else{
+                                $("span.you-info").replaceWith(`<span class="you-info">You</span>`);
+                                $("span.and-info").replaceWith(`<span class="and-info">and</span>`);
+                                $("span.favourite-counter").replaceWith(`<span class="favourite-counter">${likes_counter-1}</span>`);
+                                $("span.people-info").replaceWith(`<span class="people-info">people like this</span>`);
+                            }
+                        }
+                    }
+                }
+            },
+            error : function(response){
+                alert(response.responseJSON.error);
+            }
+            });
+    });
+    
+</script>
+
+
 
 {% endblock %} {% comment %}
 

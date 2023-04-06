@@ -1,4 +1,4 @@
-from django.urls import path, re_path
+from django.urls import path
 from .views import *
 
 from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView
@@ -11,20 +11,13 @@ urlpatterns = [
          ArticleDetailView, name='article_detail'),
     path('<int:pk>/delete/',
          ArticleDeleteView.as_view(), name='article_delete'),
-    path('new/', ArticleCreateView.as_view(), name='article_new'),
+    path('new', ArticleCreateView.as_view(), name='article_new'),
     path('login', UserLoginView, name="user-login"),
-    re_path('logout/', UserLogoutView, name="user-logout"),
-
-
-    re_path(r'^register/$', UserRegistrationView, name="user-registration"),
-
+    path('logout', UserLogoutView, name="user-logout"),
+    path('register', UserRegistrationView, name="user-registration"),
     path('activate/<slug:uidb64>/<slug:token>/',
          activate, name='user-activate'),
-
-
-
     path("<slug:title>/comment/new", new_comment, name="new_comment"),
-
     path('password_reset/', PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', PasswordResetDoneView.as_view(),
          name='password_reset_done'),
@@ -32,9 +25,11 @@ urlpatterns = [
          name='password_reset_confirm'),
     path('reset/done/', PasswordResetCompleteView.as_view(),
          name='password_reset_complete'),
-
-
     path('change_password', change_password, name="change_password"),
+    path("like-article", like_article, name="like_article"),
+    path("dislike-article", dislike_article, name="dislike_article"),
+
+
 
 
 ]

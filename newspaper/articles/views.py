@@ -14,7 +14,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
-from .models import Article, Comment
+from .models import Article, Comment, LikeArticle
 from django.views.generic import ListView, DetailView  # new
 from django.views.generic.edit import UpdateView, DeleteView  # new
 from django.urls import reverse_lazy  # new
@@ -71,7 +71,12 @@ def ArticleListView(request):
 
 def ArticleDetailView(request, title):
     try:
+        
         article = Article.objects.get(slug=title)
+        likes_counter = article.likearticle_set.all()
+        is_like = False
+        if request.user.is_authenticated:
+            is_like =  likes_counter.filter(user = request.user)[0] if  likes_counter.filter(user = request.user).count() >= 1 else None
         recent_articles = Article.objects.all().order_by("-date")[:5]
         tags = Tag.objects.all()
     except:
@@ -82,6 +87,8 @@ def ArticleDetailView(request, title):
         "article": article,
         "tags": tags,
         "recent_articles": recent_articles,
+        "is_like" : is_like,
+        "likes_counter" : likes_counter.count()
     }
     return render(request, template_name, context)
 
@@ -294,4 +301,93 @@ def new_comment(request, title):
                 })
             ),
             status=400
+        )
+
+
+@login_required
+def like_article(request):
+    if request.method == "POST" :
+        try:
+            new_obj = LikeArticle.objects.get_or_create(
+                user = request.user
+            )
+            article = Article.objects.get(id=request.POST['article'])
+            new_obj[0].articles.add(article)
+            favourite_counter = article.likearticle_set.all()
+            is_like = False
+            is_like =  1 if  favourite_counter.filter(user = request.user).count() >= 1 else 0
+            return JsonResponse(
+                json.loads(
+                    json.dumps({
+                        "status" : "OK",
+                        "favourite_counter"  : favourite_counter.count(),
+                        "is_like" : is_like
+                    })
+                ),
+                status =200
+            )
+        except:
+            traceback.print_exc()
+            return JsonResponse(
+                json.loads(
+                    json.dumps({
+                        "error" : "Invalid request"
+                    })
+                ),
+                status =400
+            )
+    else:
+        return JsonResponse(
+            json.loads(
+                json.dumps({
+                    "error" : "Invalid request"
+                })
+            ),
+            status =400
+        )
+    
+
+@login_required
+def dislike_article(request):
+    if request.method == "POST" :
+        try:
+            article = Article.objects.get(
+                id = request.POST["article"]
+            )
+            LikeArticle.objects.get(
+                user = request.user
+            ).articles.remove(article)
+            favourite_counter = article.likearticle_set.all()
+            is_like = False
+            is_like =  1 if  favourite_counter.filter(user = request.user).count() >= 1 else 0
+            return JsonResponse(
+                json.loads(
+                    json.dumps({
+                        "status" : "OK",
+                        "favourite_counter"  : favourite_counter.count(),
+                        "is_like" : is_like
+                    })
+                ),
+                status =200
+            )
+        except:
+            traceback.print_exc()
+            return JsonResponse(
+            json.loads(
+                json.dumps({
+                    "error" : "Invalid request"
+                })
+            ),
+            status =400
+        )
+        
+        
+    else:
+        return JsonResponse(
+            json.loads(
+                json.dumps({
+                    "error" : "Invalid request"
+                })
+            ),
+            status =400
         )
