@@ -142,6 +142,7 @@ GitHub.sublime-settings
 *.sqlite3
 
 newspaper/static
+newspaper/static/*
 
 
 
