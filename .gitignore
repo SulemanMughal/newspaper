@@ -141,7 +141,7 @@ GitHub.sublime-settings
 # Databases
 *.sqlite3
 
-
+newspaper/static
 
 
 

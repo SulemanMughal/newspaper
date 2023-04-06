@@ -1,3 +1,10 @@
+
+import traceback
+from django.core import serializers
+from django.http import JsonResponse
+import json
+from django.db.models import Q
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .tokens import account_activation_token
 from django.contrib.auth.forms import UserChangeForm, PasswordChangeForm
 from django.urls import reverse
@@ -7,7 +14,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
-from .models import Article
+from .models import Article, Comment
 from django.views.generic import ListView, DetailView  # new
 from django.views.generic.edit import UpdateView, DeleteView  # new
 from django.urls import reverse_lazy  # new
@@ -19,26 +26,64 @@ from django.views.generic.edit import (
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .forms import (
     loginForm,
-    registerForm
+    registerForm,
+    NewCommentForm
 )
+
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
 
+from taggit.models import Tag
 
 User = get_user_model()
 
 
-class ArticleListView(LoginRequiredMixin, ListView):
+def ArticleListView(request):
+    template_name = "article_list.html"
+    query = request.GET.get("q", None)
+    if query:
+        articles = Article.objects.filter(
+            Q(title__icontains=query) | Q(
+                body__icontains=query)
+        )
+    else:
+        articles = Article.objects.all()
+    recent_articles = Article.objects.all().order_by("-date")[:5]
+    articles = Paginator(articles, 5)
+    page_number = request.GET.get('page')
+    tags = Tag.objects.all()
+    try:
+        page_obj = articles.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = articles.page(1)
+    except EmptyPage:
+        page_obj = articles.page(articles.num_pages)
+    context = {
+        "articles": articles,
+        'page_obj': page_obj,
+        "tags": tags,
+        "recent_articles": recent_articles,
+        "query": query
+    }
+    return render(request, template_name, context)
 
-    model = Article
-    template_name = 'article_list.html'
 
-
-class ArticleDetailView(LoginRequiredMixin, DetailView):  # new
-
-    model = Article
+def ArticleDetailView(request, title):
+    try:
+        article = Article.objects.get(slug=title)
+        recent_articles = Article.objects.all().order_by("-date")[:5]
+        tags = Tag.objects.all()
+    except:
+        messages.error(request, "Requested page does not exist.")
+        return redirect(reverse("article_list"))
     template_name = 'article_detail.html'
+    context = {
+        "article": article,
+        "tags": tags,
+        "recent_articles": recent_articles,
+    }
+    return render(request, template_name, context)
 
 
 class ArticleUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # new
@@ -113,7 +158,6 @@ def UserLoginView(request):
     form = loginForm()
     context = {
         "form": form,
-        "section": True
     }
     return render(request, template_name, context)
 
@@ -196,3 +240,58 @@ def change_password(request):
         'form': form
     }
     return render(request, template_name, context)
+
+
+@login_required
+def new_comment(request, title):
+    if request.method == "POST":
+
+        try:
+            article = Article.objects.get(slug=title)
+            form = NewCommentForm(request.POST)
+            if form.is_valid():
+                new_comment = form.save(commit=False)
+                new_comment.author = request.user
+                new_comment.article = article
+                new_comment.save()
+                return JsonResponse(
+                    json.loads(
+                        json.dumps({
+                            "comment": new_comment.comment,
+                            "author": request.user.username,
+                            "datetime": new_comment.date.strftime('%B %d, %Y at %-I:%-M %p'),
+                            "counter": article.comments.all().count()
+                        })
+                    ),
+                    status=200
+                )
+            else:
+                print(form.errors)
+                return JsonResponse(
+                    json.loads(
+                        json.dumps({
+                            "error": "Invalid comment"
+                        })
+                    ),
+                    status=400
+                )
+        except:
+            traceback.print_exc()
+            return JsonResponse(
+                json.loads(
+                    json.dumps({
+                        "error": "Invalid comment"
+                    })
+                ),
+                status=400
+            )
+
+    else:
+        return JsonResponse(
+            json.loads(
+                json.dumps({
+                    "error": "Invalid request method"
+                })
+            ),
+            status=400
+        )

@@ -5,6 +5,8 @@ from django.contrib.auth import (
     get_user_model, password_validation
 )
 
+from .models import Comment
+
 User = get_user_model()
 
 
@@ -42,3 +44,11 @@ class registerForm(forms.ModelForm):
                 password_validation.validate_password(password, self.instance)
             except forms.ValidationError as error:
                 self.add_error('password2', error)
+
+
+class NewCommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = [
+            "comment"
+        ]

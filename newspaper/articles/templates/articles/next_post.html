@@ -1,0 +1,34 @@
+{% load static %}
+{% if article and article.id != current_article_id %}
+<div
+    class="col-lg-6 col-md-6 col-12 nav-right flex-row d-flex justify-content-end align-items-center">
+    <div class="detials">
+        <p>Next Post</p>
+        <a href="{{ article.get_absolute_url }}">
+            <h4>{{ article.title }}</h4>
+        </a>
+    </div>
+    {% comment %}
+    <div class="arrow">
+        <a href="#">
+            <span class="lnr text-white ti-arrow-right"></span>
+        </a>
+    </div>
+    <div class="thumb">
+        <a href="#">
+            <img class="img-fluid" src="{% static 'assets/img/post/next.png' %}"
+                alt="" />
+        </a>
+    </div>
+    {% endcomment %}
+</div>
+
+{% else %}
+
+<div
+    class="col-lg-6 col-md-6 col-12 nav-right flex-row d-flex justify-content-end align-items-center">
+</div>
+
+{% endif %}
+
+

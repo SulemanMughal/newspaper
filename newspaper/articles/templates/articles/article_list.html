@@ -1,46 +1,182 @@
 {%  extends 'base.html' %}
 
-{% block title %} Articles {% endblock %}
+{% load static %}
 
 {% block content %}
-    <div class="container">
-        <div class="row">
-            <div class="col-12">
-                <h1 class="fs-1">
-                    Articles
-                </h1>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-12">
-                {% for article in object_list %}
-                <div class="card">
-                    <div class="card-header">
-                    <span class="font-weight-bold">{{ article.title }}</span> &middot;
-                    <span class="text-muted">by {{ article.author }} |
-                    {{ article.date }}</span>
-                </div>
-                <div class="card-body">
-                {{ article.body }}
-                </div>
-                <div class="card-footer text-center text-muted">
-                    <a href="{% url 'article_edit' article.pk %}">Edit</a> |
-                    <a href="{% url 'article_delete' article.pk %}">Delete</a>
-                    </div>
-                    <div class="card-footer">
-                        {% for comment in article.comments.all %}
-                        <p>
-                        <span class="font-weight-bold">
-                        {{ comment.author }} &middot;
-                        </span>
-                        {{ comment }}
-                        </p>
+
+
+    <section class="blog_area section-padding">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mb-5 mb-lg-0">
+                    <div class="blog_left_sidebar">
+                        {% if query %}
+                            <h3>Search results for '{{ query }}' are : </h3>
+                        {% endif %}
+                        {% for article in page_obj.object_list  %}
+                        <article class="blog_item">
+                            <div class="blog_item_img">
+                                <img class="card-img rounded-0" src="{{ article.banner_image.url }}" alt="">
+                                <a href="{% url 'article_detail' article.slug %}" class="blog_item_date">
+                                    <h3>{{ article.date|date:"d" }}</h3>
+                                    <p>{{ article.date|date:"M" }}</p>
+                                </a>
+                            </div>
+
+                            <div class="blog_details">
+                                <a class="d-inline-block" href="{% url 'article_detail' article.slug %}">
+                                    <h2>{{ article.title }}</h2>
+                                </a>
+                                {% autoescape on %}
+                                    {{  article.body|safe|truncatewords_html:25 }}
+                                {% endautoescape %}
+                                
+                                
+                                <ul class="blog-info-link">
+                                    <li ><a href="{% url 'article_detail' article.slug %}"><i class="fa fa-user"></i>
+                                        {{ article.tags.all|join:" , " }}
+                                    </a></li>
+                                    <li><a href="{% url 'article_detail' article.slug %}"><i class="fa fa-comments"></i> {{ article.comments.count }} Comments</a></li>
+                                </ul>
+                            </div>
+                        </article>
                         {% endfor %}
-                        </div>
+
+                        <nav class="blog-pagination justify-content-center d-flex">
+                            <ul class="pagination">
+                                {% if page_obj.has_previous %} 
+                                <li class="page-item">
+                                    <a href="?page={{page_obj.previous_page_number}}{% if query %}&?q={{ query }}{% endif %}" class="page-link" aria-label="Previous">
+                                        <i class="ti-angle-left"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                                <li class="page-item">
+                                    <a href="#" class="page-link active">{{page_obj.number}}</a>
+                                </li>
+                                
+                                {%if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a href="?page={{page_obj.next_page_number}}{% if query %}&?q={{ query }}{% endif %}" class="page-link" aria-label="Next">
+                                        <i class="ti-angle-right"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
                 </div>
-                <br />
-                {% endfor %}
+                <div class="col-lg-4">
+                    <div class="blog_right_sidebar">
+                        <aside class="single_sidebar_widget search_widget">
+                            <form action="." method="get">
+                                <div class="form-group">
+                                    <div class="input-group mb-3">
+                                        <input type="text" class="form-control" placeholder='Search Keyword'
+                                            onfocus="this.placeholder = ''"
+                                            onblur="this.placeholder = 'Search Keyword'" name="q">
+                                        <div class="input-group-append">
+                                            <button class="btns" type="button"><i class="ti-search"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="button rounded-0 primary-bg text-white w-100 btn_1 boxed-btn"
+                                    type="submit">Search</button>
+                            </form>
+                        </aside>
+
+                        <aside class="single_sidebar_widget post_category_widget">
+                            <h4 class="widget_title">Category</h4>
+                            <ul class="list cat-list">
+                                {% for tag in tags|slice:":5" %}
+                                <li>
+                                    <a href="#" class="d-flex">
+                                        <p>{{ tag|capfirst }} </p>
+                                        <p>&nbsp; ({{ tag.taggit_taggeditem_items.count }})</p>
+                                    </a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </aside>
+                        <aside class="single_sidebar_widget popular_post_widget">
+                            <h3 class="widget_title">Recent Post</h3>
+                            {% for recent_article in recent_articles %}
+                                <div class="media post_item">
+                                    <img src="{{ recent_article.banner_image.url }}" alt="post" width="60px">
+                                    <div class="media-body">
+                                        <a href="{% url 'article_detail' recent_article.slug %}">
+                                            <h3>{{ recent_article.title|truncatechars:"20" }}</h3>
+                                        </a>
+                                        <p>{{ recent_article.date|date:"F d, Y" }}</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </aside>
+                        <aside class="single_sidebar_widget tag_cloud_widget">
+                            <h4 class="widget_title">Tag Clouds</h4>
+                            <ul class="list">
+                                {% for tag in tags %}
+                                <li>
+                                    <a href="#">{{ tag|capfirst }}</a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </aside>
+
+
+                        <aside class="single_sidebar_widget instagram_feeds">
+                            <h4 class="widget_title">Instagram Feeds</h4>
+                            <ul class="instagram_row flex-wrap">
+                                <li>
+                                    <a href="#">
+                                        <img class="img-fluid" src="{% static 'assets/img/post/post_5.png' %}" alt="">
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#">
+                                        <img class="img-fluid" src="{% static 'assets/img/post/post_6.png' %}" alt="">
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#">
+                                        <img class="img-fluid" src="{% static 'assets/img/post/post_7.png' %}" alt="">
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#">
+                                        <img class="img-fluid" src="{% static 'assets/img/post/post_8.png' %}" alt="">
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#">
+                                        <img class="img-fluid" src="{% static 'assets/img/post/post_9.png' %}" alt="">
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#">
+                                        <img class="img-fluid" src="{% static 'assets/img/post/post_10.png' %}" alt="">
+                                    </a>
+                                </li>
+                            </ul>
+                        </aside>
+
+
+                        <aside class="single_sidebar_widget newsletter_widget">
+                            <h4 class="widget_title">Newsletter</h4>
+
+                            <form action="#">
+                                <div class="form-group">
+                                    <input type="email" class="form-control" onfocus="this.placeholder = ''"
+                                        onblur="this.placeholder = 'Enter email'" placeholder='Enter email' required>
+                                </div>
+                                <button class="button rounded-0 primary-bg text-white w-100 btn_1 boxed-btn"
+                                    type="submit">Subscribe</button>
+                            </form>
+                        </aside>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    </section>
+
 {% endblock %}

@@ -1,0 +1,39 @@
+{% load static %}
+
+{% if article and article.id != current_article_id %}
+
+<div
+  class="col-lg-6 col-md-6 col-12 nav-left flex-row d-flex justify-content-start align-items-center"
+>
+  
+{% comment %}
+<div class="thumb">
+    <a href="#">
+      <img
+        class="img-fluid"
+        src="{{ article.banner_image.url }}"
+        
+        width="60px"
+        alt=""
+      />
+    </a>
+  </div>
+  <div class="arrow">
+    <a href="#">
+      <span class="lnr text-white ti-arrow-left"></span>
+    </a>
+  </div>
+{% endcomment %}
+  <div class="detials">
+    <p>Prev Post</p>
+    <a href="{{ article.get_absolute_url }}">
+      <h4>{{ article.title }}</h4>
+    </a>
+  </div>
+</div>
+{% else %}
+<div
+  class="col-lg-6 col-md-6 col-12 nav-left flex-row d-flex justify-content-start align-items-center"
+></div>
+
+{% endif %}

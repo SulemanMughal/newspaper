@@ -7,6 +7,7 @@
 
 <title>
     {% block title %}
+    AYZ News
     {% endblock %}
 </title> 
 
@@ -24,8 +25,20 @@
 
 
 </head>
-<body class="home blog">
-<div id="wrapper">
+<body >
+
+     <!-- Preloader Start -->
+     <div id="preloader-active">
+        <div class="preloader d-flex align-items-center justify-content-center">
+            <div class="preloader-inner position-relative">
+                <div class="preloader-circle"></div>
+                <div class="preloader-img pere-text">
+                    <img src="{% static 'assets/img/logo/logo.png' %}" alt="">
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Preloader Start-->
 
     {% block header %}
         {% include 'header.html' %}
@@ -36,7 +49,6 @@
     {% block content %}
     {% endblock %}
 
-</div>
     {% block footer %}
         {% include 'footer.html' %}
     {% endblock %}

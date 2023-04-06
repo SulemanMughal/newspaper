@@ -17,6 +17,7 @@ class ArticleAdmin(admin.ModelAdmin):  # new
     inlines = [
         CommentInline,
     ]
+    prepopulated_fields = {"slug": ("title",)}
 
 
 admin.site.register(Article, ArticleAdmin)  # new

@@ -28,6 +28,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'articles',
+    'taggit',
+    'ckeditor',
+    # 'django_social_share',
 ]
 
 MIDDLEWARE = [
@@ -128,3 +131,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = reverse_lazy('article_list')
 LOGIN_URL = reverse_lazy('user-login')
 LOGOUT_URL = reverse_lazy('user-logout')
+
+
+CKEDITOR_BASEPATH = "/static/ckeditor/ckeditor/"
